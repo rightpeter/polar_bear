@@ -9,11 +9,14 @@ def getJson(url):
 	data = json.loads(get_json)
 	return data
 
+def get_room_info(rid):
+	url = "http://api.douyutv.com/api/client/room/"+rid
+	data = getJson(url)
+	return data
 
 def main():
 	rid = raw_input("Please input room id:")
-	url = "http://api.douyutv.com/api/client/room/"+rid
-	data = getJson(url)
+	data = get_room_info(rid)
 	if data['error'] != 0: 
 		raise Exception("GET_JSON_ERROR")
 	data_string = json.dumps(data,sort_keys=True,indent=2)
