@@ -22,20 +22,36 @@ if __name__ == "__main__":
     room_id = raw_input('please input room_id: ')
 
     room_info = douyu_tools.getRoomInfo(room_id)
-    server = room_info['data']['servers'][0]
+    room_id = str(room_info['data']['room_id'])
+    print room_id
+    server = room_info['data']['servers'][-1]
     s = douyu_tools.connectMainServer(server['ip'], server['port'], room_id)
     # username = douyu_tools.getUserNameFromMainServer(s)
-    gid = douyu_tools.getGidFromMainServer(s)
+    data = s.recv(1024)
+    # print 'login req data 1: ', data
+    data = s.recv(1024)
+    # print 'login req data 2: ', data
     s.close()
+    gid = douyu_tools.getGidFromMainServer(data)
+    print 'gid: ', gid
 
 
     s = douyu_tools.connectDanmuServer(8602, room_id)
     data = s.recv(1024)
-    # print 'data: ',data
+    print 'data: ',data
 
     s = douyu_tools.joinDanmuRoom(s, room_id, gid)
 
     while True:
-        nickname, content = douyu_tools.getOneDanmu(s)
-        print nickname, ': ', content
+        data = s.recv(1024)
+        danmu_type = douyu_tools.getDanmuType(data)
+
+        if danmu_type == douyu_tools.TYPE_DANMU:
+            snick, content = douyu_tools.getDanmuDetails(data)
+            # print snick, ': ', content
+        elif danmu_type == douyu_tools.TYPE_YUWAN:
+            snick, yuwan = douyu_tools.getYuwanDetails(data)
+            # print snick, '赠送了', yuwan, '个鱼丸'
+        else:
+            print 'Error: ', data
     s.close()
