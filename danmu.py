@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     s = douyu_tools.connectDanmuServer(8602, room_id)
     data = s.recv(1024)
-    # print 'data: ',data
+    print 'data: ',data
 
     s = douyu_tools.joinDanmuRoom(s, room_id, gid)
 
@@ -53,11 +53,10 @@ if __name__ == "__main__":
 	        print snick, ': ', content
 	    elif danmu_type == douyu_tools.TYPE_YUWAN:
 		snick, hits = douyu_tools.getYuwanDetails(data)
-		print snick, 'ÔùËÍÁË100¸öÓãÍè', hits,'Á¬»÷'
+		print snick, 'èµ é€äº†100é±¼ä¸¸', hits,'è¿å‡»'
 	    elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
 		snick, hc = douyu_tools.getDonaYuwanDetails(data)
-		print snick, 'ÔùËÍÁË100¸öÓãÍè', hc,'Á¬»÷' 
+		print snick, 'èµ é€äº†100é±¼ä¸¸', hc,'è¿å‡»' 
 	    else:
-		print 'Error: ', data 
+		print 'Error: ', data
     s.close
-

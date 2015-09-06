@@ -108,11 +108,12 @@ def getDataList(data):
     while len(data) > 0:
 	len_dword = data[0:4]
 	len_content = struct.unpack('I', len_dword)[0]
-	end_len = len_content + 4 
+	end_len = len_content + 4
 	data_content = data[0:end_len]
 	data = data.replace(data_content,'')
 	data_list.append(data_content)
     return data_list
+
 
 def getDanmuType(data):
     type_list = re.findall(REG_TYPE, data)
@@ -161,7 +162,7 @@ def getYuwanDetails(data):
 
 def getDonaYuwanDetails(data):
     yuwan_hc = re.findall(REG_YUWAN_HC, data)
-    
+
     if len(yuwan_hc) > 0:
 	hc = yuwan_hc[0]
     else:
@@ -175,8 +176,3 @@ def getDonaYuwanDetails(data):
 	snick = ''
 
     return snick, hc
-
-
-if __name__ == "__main__":
-	main()
-
