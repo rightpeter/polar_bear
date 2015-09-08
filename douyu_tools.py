@@ -9,6 +9,7 @@ import re
 
 TYPE_DANMU = 'chatmessage'
 TYPE_YUWAN = 'dgn'
+TYPE_DONA_YUWAN = 'donateres'
 
 DOUYU_API_URL = 'http://api.douyutv.com/api/client/room/'
 DOUYU_DANMU_URL = 'danmu.douyutv.com'
@@ -21,9 +22,11 @@ REG_TYPE = re.compile(r'type@=([^/]*)/')
 REG_CONTENT = re.compile(r'content@=([^/]*)/')
 REG_SNICK = re.compile(r'snick@=([^/]*)/')
 REG_SNICK_DONA = re.compile(r'src_ncnm@=([^/]*)/')
+REG_SNICKA = re.compile(r'Snick@A=([^@]*)@')
 REG_USERNAME = re.compile(r'username@=([^/]*)/')
 REG_GID = re.compile(r'gid@=([^/]*)/')
 REG_YUWAN_HITS = re.compile(r'hits@=([^/]*)/')
+REG_YUWAN_HC = re.compile(r'hc@=([^/]*)/')
 
 def getJson(url):
 	page = urllib.urlopen(url)
@@ -100,12 +103,23 @@ def joinDanmuRoom(s, room_id, gid):
     return s
 
 
+def getDataList(data):
+    data_list = []
+    while len(data) > 0:
+	len_dword = data[0:4]
+	len_content = struct.unpack('I', len_dword)[0]
+	end_len = len_content + 4 
+	data_content = data[0:end_len]
+	data = data.replace(data_content,'')
+	data_list.append(data_content)
+    return data_list
+
 def getDanmuType(data):
     type_list = re.findall(REG_TYPE, data)
     if len(type_list) > 0:
-        danmu_type = type_list[0]
+	danmu_type = type_list[0]
     else:
-        danmu_type = ''
+	danmu_type = ''
     return danmu_type
 
 
@@ -143,6 +157,25 @@ def getYuwanDetails(data):
         snick = ''
 
     return snick, hits
+
+
+def getDonaYuwanDetails(data):
+    yuwan_hc = re.findall(REG_YUWAN_HC, data)
+    
+    if len(yuwan_hc) > 0:
+	hc = yuwan_hc[0]
+    else:
+	hc = 0
+
+    snick_list = re.findall(REG_SNICKA, data)
+
+    if len(snick_list) > 0:
+	snick = snick_list[0].decode('utf-8')
+    else:
+	snick = ''
+
+    return snick, hc
+
 
 if __name__ == "__main__":
 	main()

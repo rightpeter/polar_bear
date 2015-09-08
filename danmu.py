@@ -10,7 +10,7 @@ import douyu_tools
 
 '''
 temp = ('type@=qrl/rid@=50016/')
-len_dword = len(temp) + 4*2 +1
+len_dword = len(temp) + 4*2 + 1
 message = ''
 message += struct.pack('I', len_dword)
 message += struct.pack('I', len_dword)
@@ -44,15 +44,20 @@ if __name__ == "__main__":
 
     while True:
         data = s.recv(1024)
-        danmu_type = douyu_tools.getDanmuType(data)
-	print danmu_type
-        if danmu_type == douyu_tools.TYPE_DANMU:
-            snick, content = douyu_tools.getDanmuDetails(data)
-            print snick, ': ', content
-        elif danmu_type == douyu_tools.TYPE_YUWAN:
-            snick, hits = douyu_tools.getYuwanDetails(data)
-            print snick, '赠送了100个鱼丸', hits, '连击'
-        else:
-            print 'Error: ', data
+	data_list = douyu_tools.getDataList(data)
+	for i in range(len(data_list)):
+	    data = data_list[i]
+	    danmu_type = douyu_tools.getDanmuType(data)
+	    if danmu_type == douyu_tools.TYPE_DANMU:
+		snick, content = douyu_tools.getDanmuDetails(data)
+	        print snick, ': ', content
+	    elif danmu_type == douyu_tools.TYPE_YUWAN:
+		snick, hits = douyu_tools.getYuwanDetails(data)
+		print snick, '赠送了100个鱼丸', hits,'连击'
+	    elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
+		snick, hc = douyu_tools.getDonaYuwanDetails(data)
+		print snick, '赠送了100个鱼丸', hc,'连击' 
+	    else:
+		print 'Error: ', data 
     s.close
 
