@@ -104,14 +104,23 @@ def joinDanmuRoom(s, room_id, gid):
 
 
 def getDataList(data):
+    print 'data: ', data
     data_list = []
-    while len(data) > 0:
-	len_dword = data[0:4]
-	len_content = struct.unpack('I', len_dword)[0]
-	end_len = len_content + 4
-	data_content = data[0:end_len]
-	data = data.replace(data_content,'')
+
+    while data:
+        req_len = struct.unpack('I', data[0:4])[0]
+	data_content = data[12:4+req_len]
+        data = data[5+req_len:]
 	data_list.append(data_content)
+
+    if len(data_list) > 1:
+        print '--------------------multi data---------------------'
+        print '--------------------multi data---------------------'
+        print '--------------------multi data---------------------'
+        print '--------------------multi data---------------------'
+        for data in data_list:
+            print 'data: ', data
+
     return data_list
 
 

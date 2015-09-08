@@ -44,19 +44,18 @@ if __name__ == "__main__":
 
     while True:
         data = s.recv(1024)
-	data_list = douyu_tools.getDataList(data)
-	for i in range(len(data_list)):
-	    data = data_list[i]
-	    danmu_type = douyu_tools.getDanmuType(data)
-	    if danmu_type == douyu_tools.TYPE_DANMU:
-		snick, content = douyu_tools.getDanmuDetails(data)
-	        print snick, ': ', content
-	    elif danmu_type == douyu_tools.TYPE_YUWAN:
-		snick, hits = douyu_tools.getYuwanDetails(data)
-		print snick, '赠送了100鱼丸', hits,'连击'
-	    elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
-		snick, hc = douyu_tools.getDonaYuwanDetails(data)
-		print snick, '赠送了100鱼丸', hc,'连击' 
-	    else:
-		print 'Error: ', data
+        data_list = douyu_tools.getDataList(data)
+        for data in data_list:
+        	danmu_type = douyu_tools.getDanmuType(data)
+        	if danmu_type == douyu_tools.TYPE_DANMU:
+        	    snick, content = douyu_tools.getDanmuDetails(data)
+        	    print snick, ': ', content
+        	elif danmu_type == douyu_tools.TYPE_YUWAN:
+        	    snick, hits = douyu_tools.getYuwanDetails(data)
+        	    print snick, '赠送了100鱼丸', hits,'连击'
+        	elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
+         	    snick, hc = douyu_tools.getDonaYuwanDetails(data)
+        	    print snick, '赠送了100鱼丸', hc,'连击' 
+        	else:
+        	    print 'Error: ', data
     s.close
