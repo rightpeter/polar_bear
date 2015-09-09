@@ -1,5 +1,5 @@
 #!usr/bin/env python
-#-*-coding:utf-8-*-
+# -*-coding:utf-8-*-
 import json
 import urllib
 import socket
@@ -8,38 +8,42 @@ import struct
 import re
 
 TYPE_DANMU = 'chatmessage'
-TYPE_YUWAN = 'donateres'
+TYPE_YUWAN = 'dgn'
+TYPE_DONA_YUWAN = 'donateres'
 
 DOUYU_API_URL = 'http://api.douyutv.com/api/client/room/'
 DOUYU_DANMU_URL = 'danmu.douyutv.com'
 DOUYU_SERVER_LOGIN_REQ = 'type@=loginreq/username@=/password@=/roompass@=/roomid@=%s/devid@=231F61BD4964FEDBA49CCA7EEC1807C9/rt@=%d/vk@=24d43a31083d97881b077895d74966fa/ver@=20150831/'
-DOUYU_JOIN_DANMU_ROOM_REQ ='type@=joingroup/rid@=%s/gid@=%s/'
+DOUYU_JOIN_DANMU_ROOM_REQ = 'type@=joingroup/rid@=%s/gid@=%s/'
 DOUYU_TCP_SEND_SIGN = '\xb1\x02\x00\x00'
 DOUYU_TCP_RECV_SIGN = '\xb2\x02\x00\x00'
 
 REG_TYPE = re.compile(r'type@=([^/]*)/')
 REG_CONTENT = re.compile(r'content@=([^/]*)/')
 REG_SNICK = re.compile(r'snick@=([^/]*)/')
-REG_SNICK_DONA = re.compile(r'Snick@A=([^@]*)@')
+REG_SNICK_DONA = re.compile(r'src_ncnm@=([^/]*)/')
+REG_SNICKA = re.compile(r'Snick@A=([^@]*)@')
 REG_USERNAME = re.compile(r'username@=([^/]*)/')
 REG_GID = re.compile(r'gid@=([^/]*)/')
-REG_YUWAN = re.compile(r'ms@=([^/]*)/')
+REG_YUWAN_HITS = re.compile(r'hits@=([^/]*)/')
+REG_YUWAN_HC = re.compile(r'hc@=([^/]*)/')
+
 
 def getJson(url):
-	page = urllib.urlopen(url)
-	get_json = page.read()
-	data = json.loads(get_json)
-	return data
+    page = urllib.urlopen(url)
+    get_json = page.read()
+    data = json.loads(get_json)
+    return data
 
 
 def getRoomInfo(room_id):
-	url = DOUYU_API_URL + room_id
-	data = getJson(url)
-	return data
+    url = DOUYU_API_URL + room_id
+    data = getJson(url)
+    return data
 
 
 def packString(req_str):
-    req_len = len(req_str) + 4*2 + 1
+    req_len = len(req_str) + 4 * 2 + 1
 
     data = ''
     data += struct.pack('I', req_len)
@@ -100,13 +104,33 @@ def joinDanmuRoom(s, room_id, gid):
     return s
 
 
+def getDataList(data):
+    print 'data: ', data
+    data_list = []
+
+    while data:
+        req_len = struct.unpack('I', data[0:4])[0]
+        data_content = data[12:4 + req_len]
+        data = data[5 + req_len:]
+        data_list.append(data_content)
+
+    if len(data_list) > 1:
+        print '--------------------multi data---------------------'
+        print '--------------------multi data---------------------'
+        print '--------------------multi data---------------------'
+        print '--------------------multi data---------------------'
+        for data in data_list:
+            print 'data: ', data
+
+    return data_list
+
+
 def getDanmuType(data):
     type_list = re.findall(REG_TYPE, data)
     if len(type_list) > 0:
         danmu_type = type_list[0]
     else:
         danmu_type = ''
-
     return danmu_type
 
 
@@ -129,12 +153,12 @@ def getDanmuDetails(data):
 
 
 def getYuwanDetails(data):
-    yuwan_list = re.findall(REG_YUWAN, data)
+    yuwan_hits = re.findall(REG_YUWAN_HITS, data)
 
-    if len(yuwan_list) > 0:
-        yuwan = yuwan_list[0]
+    if len(yuwan_hits) > 0:
+        hits = yuwan_hits[0]
     else:
-        yuwan = '0'
+        hits = 0
 
     snick_list = re.findall(REG_SNICK_DONA, data)
 
@@ -143,7 +167,22 @@ def getYuwanDetails(data):
     else:
         snick = ''
 
-    return snick, yuwan
+    return snick, hits
 
-if __name__ == "__main__":
-	main()
+
+def getDonaYuwanDetails(data):
+    yuwan_hc = re.findall(REG_YUWAN_HC, data)
+
+    if len(yuwan_hc) > 0:
+        hc = yuwan_hc[0]
+    else:
+        hc = 0
+
+    snick_list = re.findall(REG_SNICKA, data)
+
+    if len(snick_list) > 0:
+        snick = snick_list[0].decode('utf-8')
+    else:
+        snick = ''
+
+    return snick, hc
