@@ -47,28 +47,38 @@ if __name__ == "__main__":
             danmu_type, = douyu_tools.getDanmuType(data)
             print 'type: ', danmu_type
             if danmu_type == douyu_tools.TYPE_DANMU:
-                content, snick = douyu_tools.getDanmuDetails(data)
-                print snick, ': ', content
+                pass
+                # print '[DANMU]data: ', data
+                # content, snick = douyu_tools.getDanmuDetails(data)
+                # print snick, ': ', content
             elif danmu_type == douyu_tools.TYPE_YUWAN:
-                print '[YUWAN]data: ', data
-                hits, snick = douyu_tools.getYuwanDetails(data)
-                print snick, '赠送了100鱼丸', hits, '连击'
-            # elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
-            #     print data
-            #     snick, hc = douyu_tools.getDonaYuwanDetails(data)
-            #     print snick, '赠送了100鱼丸', hc, '连击'
+                pass
+                # print '[YUWAN]data: ', data
+                # hits, snick = douyu_tools.getYuwanDetails(data)
+                # print snick, '赠送了100鱼丸', hits, '连击'
+            elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
+                pass
+                # print '[YUWAN DONA]data: ', data
+                # hc, snick = douyu_tools.getDonaYuwanDetails(data)
+                # print snick, '赠送了100鱼丸', hc, '连击'
             elif danmu_type == douyu_tools.TYPE_USER_ENTER:
-                print '[USER_ENTER]data: ', data
-                snick, deserve_lev, scq_cnt = douyu_tools.getUserEnterDetails(data)
-                print 'LV', deserve_lev, ' * ', scq_cnt, ' ', snick, '来到本房间'
+                pass
+                # print '[USER_ENTER]data: ', data
+                # snick, deserve_lev, scq_cnt = douyu_tools.getUserEnterDetails(data)
+                # print 'LV', deserve_lev, ' * ', scq_cnt, ' ', snick, '来到本房间'
             elif danmu_type == douyu_tools.TYPE_ONLINE_GIFT:
-                print '[ONLINE_GIFT]data: ', data
-                sil, nn = douyu_tools.getOnlineGiftDetails(data)
-                print nn, '领取了', sil, '个鱼丸'
+                pass
+                # print '[ONLINE_GIFT]data: ', data
+                # sil, nn = douyu_tools.getOnlineGiftDetails(data)
+                # print nn, '领取了', sil, '个鱼丸'
             elif danmu_type == douyu_tools.TYPE_BLACK_RES:
                 print '[BLACK_RES]data: ', data
                 dnick, = douyu_tools.getBlackResDetails(data)
                 print dnick, '被禁言'
+            elif danmu_type == douyu_tools.TYPE_BUY_DESERVE:
+                print '[BUY_DESERVE]data: ', data
+                lev, hits, snick = douyu_tools.getBuyDeserveDetails(data)
+                print snick, '购买了', lev, '级酬勤 x', hits, '连击'
             else:
                 print 'Error: ', data
     s.close

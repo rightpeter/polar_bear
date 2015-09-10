@@ -10,10 +10,14 @@ import re
 TYPE_DANMU = 'chatmessage'
 TYPE_YUWAN = 'dgn'
 TYPE_DONA_YUWAN = 'donateres'
+TYPE_USER_ENTER = 'userenter'
+TYPE_ONLINE_GIFT = 'onlinegift'
+TYPE_BLACK_RES = 'blackres'
+TYPE_BUY_DESERVE = 'bc_buy_deserve'
 
 DOUYU_API_URL = 'http://api.douyutv.com/api/client/room/'
 DOUYU_DANMU_URL = 'danmu.douyutv.com'
-DOUYU_SERVER_LOGIN_REQ = 'type@=loginreq/username@=/password@=/roompass@=/roomid@=%s/devid@=231F61BD4964FEDBA49CCA7EEC1807C9/rt@=%d/vk@=24d43a31083d97881b077895d74966fa/ver@=20150831/'
+DOUYU_SERVER_LOGIN_REQ = 'type@=loginreq/username@=/password@=/roompass@=/roomid@=%s/devid@=231F61BD4964FEDBA49CCA7EEC1807C9/rt@=%d/vk@=24d43a31083d97881b077895d74966fa/ver@=20150909/'
 DOUYU_JOIN_DANMU_ROOM_REQ = 'type@=joingroup/rid@=%s/gid@=%s/'
 DOUYU_TCP_SEND_SIGN = '\xb1\x02\x00\x00'
 DOUYU_TCP_RECV_SIGN = '\xb2\x02\x00\x00'
@@ -21,12 +25,18 @@ DOUYU_TCP_RECV_SIGN = '\xb2\x02\x00\x00'
 REG_TYPE = re.compile(r'type@=([^/]*)/')
 REG_CONTENT = re.compile(r'content@=([^/]*)/')
 REG_SNICK = re.compile(r'snick@=([^/]*)/')
-REG_SNICK_DONA = re.compile(r'src_ncnm@=([^/]*)/')
+REG_SRC_NCNM = re.compile(r'src_ncnm@=([^/]*)/')
 REG_SNICKA = re.compile(r'Snick@A=([^@]*)@')
 REG_USERNAME = re.compile(r'username@=([^/]*)/')
 REG_GID = re.compile(r'gid@=([^/]*)/')
-REG_YUWAN_HITS = re.compile(r'hits@=([^/]*)/')
+REG_HITS = re.compile(r'hits@=([^/]*)/')
 REG_YUWAN_HC = re.compile(r'hc@=([^/]*)/')
+REG_DESERVE_LEV = re.compile(r'Sm_deserve_lev@A=([^@]*)@')
+REG_SCQ_CNT = re.compile(r'Scq_cnt@A=([^@]*)@')
+REG_SIL = re.compile(r'sil@=([0-9]*)/')
+REG_NN = re.compile(r'nn@=([^/]*)/')
+REG_DNICK = re.compile(r'dnick@=([^/]*)/')
+REG_LEV = re.compile(r'lev@=([0-9]*)/')
 
 
 def getJson(url):
@@ -40,6 +50,22 @@ def getRoomInfo(room_id):
     url = DOUYU_API_URL + room_id
     data = getJson(url)
     return data
+
+
+def reGetDetails(re_list, data):
+    ret = []
+
+    for tre in re_list:
+        re_detail = re.findall(tre, data)
+
+        if len(re_detail) > 0:
+            detail = re_detail[0]
+        else:
+            detail = ''
+
+        ret.append(detail)
+
+    return tuple(ret)
 
 
 def packString(req_str):
@@ -67,23 +93,17 @@ def connectMainServer(url, port, room_id):
 
 
 def getUserNameFromMainServer(data):
-    username_list = re.findall(REG_USERNAME, data)
-    if len(username_list) > 0:
-        username = username_list[0]
-    else:
-        username = ''
-
-    return username
+    '''
+        return username
+    '''
+    return reGetDetails([REG_USERNAME], data)
 
 
 def getGidFromMainServer(data):
-    gid_list = re.findall(REG_GID, data)
-    if len(gid_list) > 0:
-        gid = gid_list[0]
-    else:
-        gid = 0
-
-    return gid
+    '''
+        return gid
+    '''
+    return reGetDetails([REG_GID], data)
 
 
 def connectDanmuServer(port, room_id):
@@ -105,84 +125,80 @@ def joinDanmuRoom(s, room_id, gid):
 
 
 def getDataList(data):
-    print 'data: ', data
+    # print 'data: ', data
+    # tmp_data = data
     data_list = []
 
     while data:
         req_len = struct.unpack('I', data[0:4])[0]
+        print 'req_len: ', req_len, ' data_len: ', len(data)
         data_content = data[12:4 + req_len]
-        data = data[5 + req_len:]
+        data = data[4 + req_len:]
         data_list.append(data_content)
 
-    if len(data_list) > 1:
-        print '--------------------multi data---------------------'
-        print '--------------------multi data---------------------'
-        print '--------------------multi data---------------------'
-        print '--------------------multi data---------------------'
-        for data in data_list:
-            print 'data: ', data
+    # if len(data_list) > 1:
+    #     print '--------------------multi data---------------------'
+    #     print '--------------------multi data---------------------'
+    #     print 'tmp_data: ', tmp_data
+    #     print '--------------------multi data---------------------'
+    #     print '--------------------multi data---------------------'
+    #     for data in data_list:
+    #         print 'data: ', data
 
     return data_list
 
 
 def getDanmuType(data):
-    type_list = re.findall(REG_TYPE, data)
-    if len(type_list) > 0:
-        danmu_type = type_list[0]
-    else:
-        danmu_type = ''
-    return danmu_type
+    '''
+        return danmu_type
+    '''
+    return reGetDetails([REG_TYPE], data)
 
 
 def getDanmuDetails(data):
-    content_list = re.findall(REG_CONTENT, data)
-
-    if len(content_list) > 0:
-        content = content_list[0].decode('utf-8')
-    else:
-        content = ''
-
-    snick_list = re.findall(REG_SNICK, data)
-
-    if len(snick_list) > 0:
-        snick = snick_list[0].decode('utf-8')
-    else:
-        snick = ''
-
-    return snick, content
+    '''
+        return content, snick
+    '''
+    return reGetDetails([REG_CONTENT, REG_SNICK], data)
 
 
 def getYuwanDetails(data):
-    yuwan_hits = re.findall(REG_YUWAN_HITS, data)
-
-    if len(yuwan_hits) > 0:
-        hits = yuwan_hits[0]
-    else:
-        hits = 0
-
-    snick_list = re.findall(REG_SNICK_DONA, data)
-
-    if len(snick_list) > 0:
-        snick = snick_list[0].decode('utf-8')
-    else:
-        snick = ''
-
-    return snick, hits
+    '''
+        return hits, snick
+    '''
+    return reGetDetails([REG_HITS, REG_SRC_NCNM], data)
 
 
 def getDonaYuwanDetails(data):
-    yuwan_hc = re.findall(REG_YUWAN_HC, data)
+    '''
+        return hc, snick
+    '''
+    return reGetDetails([REG_YUWAN_HC, REG_SNICKA], data)
 
-    if len(yuwan_hc) > 0:
-        hc = yuwan_hc[0]
-    else:
-        hc = 0
 
-    snick_list = re.findall(REG_SNICKA, data)
+def getUserEnterDetails(data):
+    '''
+        return snick, deserve_lev, scq_cnt
+    '''
+    return reGetDetails([REG_SNICKA, REG_DESERVE_LEV, REG_SCQ_CNT], data)
 
-    if len(snick_list) > 0:
-        snick = snick_list[0].decode('utf-8')
-    else:
-        snick = ''
 
-    return snick, hc
+def getOnlineGiftDetails(data):
+    '''
+        return sil, nn
+    '''
+    return reGetDetails([REG_SIL, REG_NN], data)
+
+
+def getBlackResDetails(data):
+    '''
+        return dnick
+    '''
+    return reGetDetails([REG_DNICK], data)
+
+
+def getBuyDeserveDetails(data):
+    '''
+        return lev, hits, snick
+    '''
+    return reGetDetails([REG_LEV, REG_HITS, REG_SNICKA])
