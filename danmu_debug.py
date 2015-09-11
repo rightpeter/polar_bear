@@ -3,6 +3,7 @@
 
 import douyu_tools
 import random
+import time
 
 '''
 temp = ('type@=qrl/rid@=50016/')
@@ -26,10 +27,10 @@ if __name__ == "__main__":
     s = douyu_tools.connectMainServer(server['ip'], server['port'], room_id)
     # username = douyu_tools.getUserNameFromMainServer(s)
     data = s.recv(1024)
-    # print 'login req data 1: ', data
+    print 'unkown data: ', data
     data = s.recv(1024)
-    # print 'login req data 2: ', data
     s.close()
+    print 'receiveGid data: ', data
     gid, = douyu_tools.getGidFromMainServer(data)
     print 'gid: ', gid
 
@@ -37,15 +38,23 @@ if __name__ == "__main__":
     data = s.recv(1024)
     print 'data: ', data
 
-    s = douyu_tools.joinDanmuRoom(s, room_id, gid)
+    s = douyu_tools.sendKeepLive(s)
+    data = s.recv(1024)
+    print 'sendKeepLive: ', data
 
+    s = douyu_tools.joinDanmuRoom(s, room_id, gid)
+    # data = s.recv(1024)
+    # print 'joinDanmuRoom: ', data
+
+    last_keep_alive_time = int(time.time())
     while True:
         data = s.recv(1024)
+        last_keep_alive_time = douyu_tools.checkKeepLive(s, last_keep_alive_time)
         data_list = douyu_tools.getDataList(data)
         # print 'len(data_list): ', len(data_list)
         for data in data_list:
             danmu_type, = douyu_tools.getDanmuType(data)
-            print 'type: ', danmu_type
+            print '--------type: ', danmu_type
             if danmu_type == douyu_tools.TYPE_DANMU:
                 pass
                 # print '[DANMU]data: ', data
@@ -54,8 +63,8 @@ if __name__ == "__main__":
             elif danmu_type == douyu_tools.TYPE_YUWAN:
                 pass
                 # print '[YUWAN]data: ', data
-                # hits, snick = douyu_tools.getYuwanDetails(data)
-                # print snick, '赠送了100鱼丸', hits, '连击'
+                # hits, snick, gift = douyu_tools.getYuwanDetails(data)
+                # print snick, '赠送了', gift, ' x', hits, '连击'
             elif danmu_type == douyu_tools.TYPE_DONA_YUWAN:
                 pass
                 # print '[YUWAN DONA]data: ', data
@@ -72,13 +81,17 @@ if __name__ == "__main__":
                 # sil, nn = douyu_tools.getOnlineGiftDetails(data)
                 # print nn, '领取了', sil, '个鱼丸'
             elif danmu_type == douyu_tools.TYPE_BLACK_RES:
-                print '[BLACK_RES]data: ', data
-                dnick, = douyu_tools.getBlackResDetails(data)
-                print dnick, '被禁言'
+                pass
+                # print '[BLACK_RES]data: ', data
+                # dnick, = douyu_tools.getBlackResDetails(data)
+                # print dnick, '被禁言'
             elif danmu_type == douyu_tools.TYPE_BUY_DESERVE:
-                print '[BUY_DESERVE]data: ', data
+                print '[BUY_DESERVE]data: ', data, ' type: ', danmu_type
                 lev, hits, snick = douyu_tools.getBuyDeserveDetails(data)
                 print snick, '购买了', lev, '级酬勤 x', hits, '连击'
+            elif danmu_type == douyu_tools.TYPE_KEEP_LIVE:
+                pass
+                # print '[KEEP_ALIVE]data: ', data
             else:
                 print 'Error: ', data
     s.close

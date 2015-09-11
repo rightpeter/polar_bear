@@ -14,11 +14,13 @@ TYPE_USER_ENTER = 'userenter'
 TYPE_ONLINE_GIFT = 'onlinegift'
 TYPE_BLACK_RES = 'blackres'
 TYPE_BUY_DESERVE = 'bc_buy_deserve'
+TYPE_KEEP_LIVE = 'keeplive'
 
 DOUYU_API_URL = 'http://api.douyutv.com/api/client/room/'
 DOUYU_DANMU_URL = 'danmu.douyutv.com'
 DOUYU_SERVER_LOGIN_REQ = 'type@=loginreq/username@=/password@=/roompass@=/roomid@=%s/devid@=231F61BD4964FEDBA49CCA7EEC1807C9/rt@=%d/vk@=24d43a31083d97881b077895d74966fa/ver@=20150909/'
 DOUYU_JOIN_DANMU_ROOM_REQ = 'type@=joingroup/rid@=%s/gid@=%s/'
+DOUYU_KEEP_ALIVE = 'type@=keeplive/tick@=%s/'
 DOUYU_TCP_SEND_SIGN = '\xb1\x02\x00\x00'
 DOUYU_TCP_RECV_SIGN = '\xb2\x02\x00\x00'
 
@@ -37,6 +39,7 @@ REG_SIL = re.compile(r'sil@=([0-9]*)/')
 REG_NN = re.compile(r'nn@=([^/]*)/')
 REG_DNICK = re.compile(r'dnick@=([^/]*)/')
 REG_LEV = re.compile(r'lev@=([0-9]*)/')
+REG_GFID = re.compile(r'gfid@=([0-9]*)/')
 
 
 def getJson(url):
@@ -124,6 +127,24 @@ def joinDanmuRoom(s, room_id, gid):
     return s
 
 
+def sendKeepLive(s):
+    req_str = DOUYU_KEEP_ALIVE % (int(time.time()))
+    data = packString(req_str)
+
+    # print '[sendKeepLive]data: ', data
+    s.send(data)
+    return s
+
+
+def checkKeepLive(s, last_keep_alive_time):
+    now = int(time.time())
+    if now - last_keep_alive_time > 5:
+        s = sendKeepLive(s)
+        return now
+
+    return last_keep_alive_time
+
+
 def getDataList(data):
     # print 'data: ', data
     # tmp_data = data
@@ -159,14 +180,24 @@ def getDanmuDetails(data):
     '''
         return content, snick
     '''
-    return reGetDetails([REG_CONTENT, REG_SNICK], data)
+    content, snick, gfid = reGetDetails([REG_CONTENT, REG_SNICK, REG_GFID], data)
+    if gfid == '50':
+        gift = '100鱼丸'
+    elif gfid == '51':
+        gift = '赞'
+    return (content, snick, gift)
 
 
 def getYuwanDetails(data):
     '''
         return hits, snick
     '''
-    return reGetDetails([REG_HITS, REG_SRC_NCNM], data)
+    hits, src_ncnm, gfid = reGetDetails([REG_HITS, REG_SRC_NCNM, REG_GFID], data)
+    if gfid == '50':
+        gift = '100鱼丸'
+    elif gfid == '51':
+        gift = '赞'
+    return (hits, src_ncnm, gift)
 
 
 def getDonaYuwanDetails(data):
@@ -201,4 +232,4 @@ def getBuyDeserveDetails(data):
     '''
         return lev, hits, snick
     '''
-    return reGetDetails([REG_LEV, REG_HITS, REG_SNICKA])
+    return reGetDetails([REG_LEV, REG_HITS, REG_SNICKA], data)
